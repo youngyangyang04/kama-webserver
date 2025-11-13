@@ -1,165 +1,122 @@
-# kama-webserver
-【代码随想录知识星球】项目分享-webserver
+# C++项目推荐：kama-webserver | 代码随想录
 
-## 项目介绍
+**本项目目前只在[知识星球](https://programmercarl.com/other/kstar.html)里维护，并答疑**
 
-本项目是一个高性能的WEB服务器，使用C++实现，项目底层采用了muduo库核心的设计思想，多线程多Reactor的网络模型，并且在这基础上增加了内存池，高效的双缓冲异步日志系统，以及LFU的缓存。
+最近[知识星球](https://programmercarl.com/other/kstar.html)里的项目开启翻新计划，为了应变每年校招求职的变化，很多星球老项目都重构代码并重写项目文档了。
 
-## 开发环境
+这期给大家重构的项目是 23年在[知识星球](https://programmercarl.com/other/kstar.html)里发布的webserver项目。
 
-* linux kernel version5.15.0-113-generic (ubuntu 22.04.6)
-* gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
-* cmake version 3.22
+## 老生常淡，webserver还能做吗？
 
-## 目录结构
+关于C++的项目，大家都会知道 webserver。
 
-```shell
-kama-webserver/
-├── img/ #存放图片
-├── include/ #所有头文件.h位置
-├── lib/ #存放共享库
-|
-├── log/ # 日志管理模块
-│ ├── log.cc # 日志实现
-├── memory/ # 内存管理模块
-│ ├── memory.cc # 内存管理实现
-├── src/ # 源代码目录
-│ ├── main.cpp # 主程序入口
-│ ├── ... # 其他源文件 
-|
-├── CMakeLists.txt # CMake 构建文件
-├── LICENSE # 许可证文件
-└── README.md # 项目说明文件
-```
+有一个段子：C++选手人均webserver。
 
-## 前置工具准备
+我得给webserver“伸冤”一下，其实**webserver是一个非常好的学习项目，只是这个项目的形式“烂大街”了**，它所涉及的知识依然是经典的。
 
-安装基本工具
+webserver 所涉及到的知识：
 
-```bash
-sudo apt-get update
-sudo apt-get install -y wget cmake build-essential unzip git
-```
+* C++八股（C/C++语法全覆盖、内存管理等、可以扩展至C++11/17）
+* 操作系统（线程、进程、锁、还有大量的 I/O 系统调用及其封装还有 EPOLL 等多路复用机制）
+* 网络（网络编程，通信，网络异常的处理）
+* 数据库（注册中心的数据库语句、负载均衡等）
+* 还有设计模式、缓存设计，日志系统，定时器模块等等
 
-## 编译指令
-1. 克隆项目：
-```bash
-   git clone https://github.com/youngyangyang04/kama-webserver.git
-   cd kama-webserver
-```
+**大家背的八股，无非就是 网络，操作系统和数据库，还有C++八股，webserver基本都包含了**，**webserver是八股结合实战非常好的案例**！
 
-2. 创建构建目录并编译：
+可以理解成：**webserver 就是大家背的八股的实战篇**。
 
-```bash
-   mkdir build &&
-   cd build &&
-   cmake .. &&
-   make -j ${nproc}
-```
+webserver 也可以称之为高性能服务器，因为他算是服务器开发，不少录友在简历上不写webserver这个名字，而写的是高性能服务器。
 
-3. 在构建完成后，先进入到bin文件
+换一个名字好像高级了一些。。。
 
-```bash
-cd bin
-```
+如果你时间充裕，想系统学习C++，做webserver是非常好的选择，你会发现自己背的八股都活学活用了。
 
-4. 启动项目可执行程序main
+当然，简历上一个webserver 是不够的，还需要再做一个项目。 [知识星球](https://programmercarl.com/other/kstar.html)里有众多项目可以选：
 
-```bash
-./main 
-```
+如果你时间紧张，那就别做webserver了，本来形式就是“烂大街”的。
 
-**注意**：需要再另外开一个新窗口运行`nc 127.0.0.1 8080`启动我们的客户端，来链接main可执行程序启动的web服务器
+webserver是用来打基础的，也没时间打基础，就把相关八股背一背，突击做一些新颖一些的项目。[知识星球](https://programmercarl.com/other/kstar.html)里目前有10个C++的项目可以选择。
 
-## 运行结果
-通过运行项目中bin文件下可执行程序main，会出现如下结果：
-
-其中日志文件将存放bin文件下的 `logs` 目录中，每次运行程序时，都会生成新的日志文件，记录程序的运行状态和错误信息。
-
-- 服务器的，运行结果如图
-
-![img](./img/1.png)
-
-- 客户端的，运行结果如图
- 
-![img](./img/2.png)
-
-**注意**：测试的结果还是采用回声服务器测试,注重架构的实现。
-
----
-
-### 日志核心内容简单分析：
-
-首先日志结果如图：
-![img](./img/3.png)
-
-1. 文件描述符统计
-
-```bash
-2025/01/24 17:40:240290 INFO  fd total count:1 - EPollPoller.cc:32
-```
-
-- 说明： EPoll 当前管理的文件描述符总数为 1（可能是一个连接的套接字）。
-
-2. 事件触发
-
-```bash
-2025/01/24 17:40:454794 INFO  %d events happend1 - EPollPoller.cc:40
-2025/01/24 17:40:454852 INFO  channel handleEvent revents:1 - Channel.cc:73
-```
-
-- 一个事件发生（events happend1），可能是客户端套接字的关闭事件。
-- revents:1 表示触发的事件类型为 EPOLLIN，即对端关闭了连接或者发送了数据。
-
-3. 连接关闭处理
-
-```bash
-2025/01/24 17:40:454890 INFO  TcpConnection::handleClose fd=13state=2 - TcpConnection.cc:241
-2025/01/24 17:40:454907 INFO  func =>fd13events=0index=1 - EPollPoller.cc:66
-2025/01/24 17:40:454929 INFO  Connection DOWN :127.0.0.1:47376 - main.cc:44
-```
-- TcpConnection::handleClose: 文件描述符 fd=13 的连接关闭，当前状态 state=2（可能表示“已建立连接”状态）。
-- Connection DOWN: 与客户端 127.0.0.1:47376 的连接断开。
-- events=0: 表示该文件描述符不再监听任何事件。
-
-4. 从服务器中移除连接
-
-```bash 
-2025/01/24 17:40:455009 INFO  TcpServer::removeConnectionInLoop [EchoServer] - connection %sEchoServer-127.0.0.1:8080#1 - TcpServer.cc:114
-2025/01/24 17:40:455138 INFO  removeChannel fd=13 - EPollPoller.cc:102
-```
-- TcpServer::removeConnectionInLoop: 服务器内部移除与连接 127.0.0.1:47376 的绑定。
-- removeChannel: 从 EPoll 的事件监听列表中移除了文件描述符 fd=13。
-
-5. 资源清理
-
-```bash 
-2025/01/24 17:40:455155 INFO  TcpConnection::dtor[EchoServer-127.0.0.1:8080#1]at fd=13state=0 - TcpConnection.cc:58
-```
-- 调用 TcpConnection 析构函数（dtor），释放连接的相关资源。
-- 状态 state=0 表示连接已完全关闭，文件描述符 fd=13 被销毁。
+## 高性能服务器项目第二版
 
 
-## 功能模块划分
+文档方面，相对与[第一版](https://mp.weixin.qq.com/s/40ISnd7PkBtAlWv5MQf1vQ) 做了如下优化：
 
-### 网络模块
+1、开篇：讲述了为什么要学习webserver，以及学习webserver需要什么基础知识。
 
-- **事件轮询与分发模块**：`EventLoop.*`、`Channel.*`、`Poller.*`、`EPollPoller.*`负责事件轮询检测，并实现事件分发处理。`EventLoop`对`Poller`进行轮询，`Poller`底层由`EPollPoller`实现。
-- **线程与事件绑定模块**：`Thread.*`、`EventLoopThread.*`、`EventLoopThreadPool.*`绑定线程与事件循环，完成`one loop per thread`模型。
-- **网络连接模块**：`TcpServer.*`、`TcpConnection.*`、`Acceptor.*`、`Socket.*`实现`mainloop`对网络连接的响应，并分发到各`subloop`。
-- **缓冲区模块**：`Buffer.*`提供自动扩容缓冲区，保证数据有序到达。
+2、大纲：讲述了整个文章的框架结构。
 
-### 日志模块
+3、框架梳理：讲述了webserver整体的架构如网络模块、定时器模块、内存池、LFU、日志系统等。
 
-- 日志模块负责记录服务器运行过程中的重要信息，帮助开发者进行调试和性能分析。日志文件存放位于 `bin/logs/` 目录下。
+4、代码模块：讲述了上面提到模块以及内存池、LFU的核心代码部分。
 
-### 内存管理
+5、面试问题：整理了星球录友亲身经历的问题
 
-- 内存管理模块负责动态内存的分配和释放，确保服务器在高负载情况下的稳定性和性能。
+6、补充简历写法。
 
-### LFU缓存模块
-- 用于在缓存容量不足时决定删除哪些内容以释放空间。LFU 的核心思想是优先移除使用频率最低的缓存项。
+## 高性能服务器专栏
 
-## 贡献
+该项目的专栏是[知识星球](https://programmercarl.com/other/kstar.html)录友专享的。
 
-欢迎任何形式的贡献！请提交问题、建议或代码请求。
+项目专栏依然是将 「简历写法」给大家列出来了，大家学完就可以参考这个来写简历：
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307105143.png' width=500 alt=''></img></div>
+
+做完该项目，面试中大概率会有哪些面试问题，以及如何回答，也列出好了：
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307105324.png' width=500 alt=''></img></div>
+
+专栏中的项目面试题都掌握的话，这个项目在面试中基本没问题。
+
+很多录友在做项目的时候，把项目运行起来 就是第一大难点！
+
+本项目运行起来 需要依赖的环境很多，所以我给大家准备的 自动化环境配置脚本， **项目运行环境，一键配置！ 不需要大家去处理环境问题了**：
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307105632.png' width=500 alt=''></img></div>
+
+
+框架梳理：
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307105726.png' width=500 alt=''></img></div>
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307105931.png' width=500 alt=''></img></div>
+
+底层网络模块架构：
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307105758.png' width=500 alt=''></img></div>
+
+代码讲解：
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307110003.png' width=500 alt=''></img></div>
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307110035.png' width=500 alt=''></img></div>
+
+日志系统的设计：
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307110057.png' width=500 alt=''></img></div>
+
+缓冲区的设计：
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307110130.png' width=500 alt=''></img></div>
+
+内存管理设计：
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307110205.png' width=500 alt=''></img></div>
+
+线程池：
+
+<div align="center"><img src='https://file1.kamacoder.com/i/algo/20250307110234.png' width=500 alt=''></img></div>
+
+## 答疑
+
+本项目在[知识星球](https://programmercarl.com/other/kstar.html)里为 文字专栏形式，大家不用担心，看不懂，星球里每个项目有专属答疑群，任何问题都可以在群里问，都会得到解答：
+
+![](https://file1.kamacoder.com/i/web/2025-09-26_11-30-13.jpg)
+
+
+
+## 下载方式
+
+**本文档仅为星球内部专享，大家可以加入[知识星球](https://programmercarl.com/other/kstar.html)里获取，在星球置顶一**
+
